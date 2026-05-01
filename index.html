@@ -641,7 +641,7 @@ async function addGrp(){const p=curProject();if(!p)return;const color=COLORS[(pr
   await sb.from('groups').insert({project_id:p.id,name:'Nieuwe groep',color,position:projectData.groups.length});
   await loadProjectData();renderApp();setTimeout(()=>{const el=document.querySelector('.grp-name:last-of-type');if(el){el.focus();document.execCommand('selectAll',false,null)}},80)}
 async function renGrp(id,name){if(!name.trim())return;await sb.from('groups').update({name:name.trim()}).eq('id',id);await loadProjectData()}
-async function delGrp(id){if(!confirm('Groep verwijderen?'))return;await sb.from('groups').delete().eq('id',id);await loadProjectData();renderApp()}
+async function delGrp(id){await sb.from('groups').delete().eq('id',id);await loadProjectData();renderApp()}
 async function togGrp(id){const g=groupById(id);if(!g)return;await sb.from('groups').update({collapsed:!g.collapsed}).eq('id',id);await loadProjectData();renderApp()}
 async function chGrpColor(id){const g=groupById(id);if(!g)return;const nc=COLORS[(COLORS.indexOf(g.color)+1)%COLORS.length];await sb.from('groups').update({color:nc}).eq('id',id);await loadProjectData();renderApp()}
 
@@ -649,7 +649,7 @@ async function addIt(gid){const p=curProject();if(!p)return;const cnt=projectDat
   await sb.from('items').insert({group_id:gid,project_id:p.id,name:'',status:'todo',position:cnt});
   await loadProjectData();renderApp();setTimeout(()=>{const inputs=document.querySelectorAll('.cl-item input');if(inputs.length)inputs[inputs.length-1].focus()},60)}
 async function updIt(id,k,v){await sb.from('items').update({[k]:v||null}).eq('id',id);const it=itemById(id);if(it)it[k]=v}
-async function delIt(id){if(!confirm('Verwijderen?'))return;await sb.from('items').delete().eq('id',id);await loadProjectData();renderApp()}
+async function delIt(id){await sb.from('items').delete().eq('id',id);await loadProjectData();renderApp()}
 
 // ═══ STATUS POP ═══
 function openStPop(ev,id){ev.stopPropagation();closeAllPops();const pop=document.getElementById('statusPop');
