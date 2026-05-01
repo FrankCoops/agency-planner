@@ -633,7 +633,7 @@ function showBarPop(ev,itemId){if(dragState&&dragState.moved)return;ev.stopPropa
   h+=`<button class="bp-open" onclick="closeBarPop();openDetail('${it.id}')">Details openen</button>`;
   const pop=document.getElementById('barPop');pop.innerHTML=h;const r=ev.target.closest('.tl-b').getBoundingClientRect();
   pop.style.left=Math.min(r.left+r.width/2-140,innerWidth-300)+'px';pop.style.top=Math.min(r.bottom+8,innerHeight-300)+'px';
-  pop.classList.add('open');setTimeout(()=>document.addEventListener('click',closeBarPop,{once:true}),10)}
+  pop.classList.add('open')}
 function closeBarPop(){document.getElementById('barPop').classList.remove('open')}
 
 // ═══ DB ACTIONS ═══
@@ -654,7 +654,7 @@ async function delIt(id){if(!confirm('Verwijderen?'))return;await sb.from('items
 // ═══ STATUS POP ═══
 function openStPop(ev,id){ev.stopPropagation();closeAllPops();const pop=document.getElementById('statusPop');
   pop.innerHTML=STATUSES.map(s=>`<div class="po-i" onclick="setStatus('${id}','${s.id}')"><div style="width:14px;height:14px;border-radius:4px;background:${ST_BG[s.id]};flex-shrink:0"></div><span style="font-weight:600">${s.l}</span></div>`).join('');
-  posPop(pop,ev.target);pop.classList.add('open');setTimeout(()=>document.addEventListener('click',closeAllPops,{once:true}),10)}
+  posPop(pop,ev.target);pop.classList.add('open')}
 async function setStatus(id,st){await updIt(id,'status',st);await loadProjectData();renderApp()}
 
 // ═══ OWNER POP ═══
@@ -663,7 +663,7 @@ function openOwnerPop(ev,id){ev.stopPropagation();closeAllPops();const pop=docum
   let h='<div class="po-t">Eigenaar toewijzen</div>';
   if(projectData.members.length){h+=projectData.members.map(m=>{const on=oIds.includes(m.id);return`<div class="po-i${on?' on':''}" onclick="togOwner('${id}','${m.id}',${!on})"><div class="po-ck">${on?'✓':''}</div><div class="owner-av" style="background:${m.color};width:20px;height:20px;font-size:9px;border:none;box-shadow:none">${(m.name||'?').charAt(0).toUpperCase()}</div>${esc(m.name)}</div>`}).join('')}
   else h+=`<div style="padding:8px;font-size:12px;color:var(--g3)">Voeg eerst teamleden toe via 'Team'.</div>`;
-  pop.innerHTML=h;posPop(pop,ev.currentTarget);pop.classList.add('open');setTimeout(()=>document.addEventListener('click',e=>{if(!pop.contains(e.target))closeAllPops()},{once:true}),10)}
+  pop.innerHTML=h;posPop(pop,ev.currentTarget);pop.classList.add('open')}
 async function togOwner(itemId,userId,add){
   if(add)await sb.from('item_owners').insert({item_id:itemId,user_id:userId});
   else await sb.from('item_owners').delete().eq('item_id',itemId).eq('user_id',userId);
@@ -675,7 +675,7 @@ function openPartnerPop(ev,id){ev.stopPropagation();closeAllPops();const pop=doc
   let h='<div class="po-t">Partners toewijzen</div>';
   if(projectData.partners.length){h+=projectData.partners.map(p=>{const on=pIds.includes(p.id);return`<div class="po-i${on?' on':''}" onclick="togPartner('${id}','${p.id}',${!on})"><div class="po-ck">${on?'✓':''}</div>${esc(p.name)}</div>`}).join('');h+='<div class="po-sep"></div>'}
   h+=`<div class="po-inp"><input id="popPPI" placeholder="Nieuwe partner..." onkeydown="if(event.key==='Enter')addPartnerInline('${id}')"><button onclick="addPartnerInline('${id}')">+</button></div>`;
-  pop.innerHTML=h;posPop(pop,ev.currentTarget);pop.classList.add('open');setTimeout(()=>document.addEventListener('click',e=>{if(!pop.contains(e.target))closeAllPops()},{once:true}),10)}
+  pop.innerHTML=h;posPop(pop,ev.currentTarget);pop.classList.add('open')}
 async function togPartner(itemId,partnerId,add){
   if(add)await sb.from('item_partners').insert({item_id:itemId,partner_id:partnerId});
   else await sb.from('item_partners').delete().eq('item_id',itemId).eq('partner_id',partnerId);
@@ -692,14 +692,22 @@ function openDepPop(ev,id){ev.stopPropagation();closeAllPops();const pop=documen
   for(const g of projectData.groups){const gi=projectData.items.filter(i=>i.group_id===g.id&&i.id!==id);if(!gi.length)continue;
     h+=`<div style="font-size:9px;font-weight:700;color:${g.color};padding:6px 8px 2px">${esc(g.name)}</div>`;
     h+=gi.map(si=>{const on=dIds.includes(si.id);return`<div class="po-i${on?' on':''}" onclick="togDep('${id}','${si.id}',${!on})"><div class="po-ck">${on?'✓':''}</div>${esc(si.name)||'(naamloos)'}</div>`}).join('')}
-  pop.innerHTML=h;posPop(pop,ev.currentTarget);pop.classList.add('open');setTimeout(()=>document.addEventListener('click',e=>{if(!pop.contains(e.target))closeAllPops()},{once:true}),10)}
+  pop.innerHTML=h;posPop(pop,ev.currentTarget);pop.classList.add('open')}
 async function togDep(itemId,depId,add){
   if(add)await sb.from('item_dependencies').insert({item_id:itemId,depends_on_id:depId});
   else await sb.from('item_dependencies').delete().eq('item_id',itemId).eq('depends_on_id',depId);
   await loadProjectData();renderApp()}
 
 function posPop(pop,a){const r=a.getBoundingClientRect();pop.style.left=Math.min(r.left,innerWidth-240)+'px';pop.style.top=Math.min(r.bottom+4,innerHeight-340)+'px'}
-function closeAllPops(){document.querySelectorAll('.pop').forEach(p=>p.classList.remove('open'))}
+function closeAllPops(){document.querySelectorAll('.pop').forEach(p=>p.classList.remove('open'));closeBarPop()}
+
+// Global click listener: close any open popover when clicking outside
+document.addEventListener('mousedown',function(ev){
+  const pops=document.querySelectorAll('.pop.open');
+  pops.forEach(pop=>{if(!pop.contains(ev.target))pop.classList.remove('open')});
+  const bp=document.getElementById('barPop');
+  if(bp&&bp.classList.contains('open')&&!bp.contains(ev.target))bp.classList.remove('open');
+});
 
 // ═══ DETAIL PANEL ═══
 function openDetail(id){const it=itemById(id);if(!it)return;const g=groupById(it.group_id);
